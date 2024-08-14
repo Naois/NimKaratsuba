@@ -134,7 +134,6 @@ func `-`(a : BigInt, b : BigInt) : BigInt =
             #this is bad, since I'm assuming that we're dealing with positives here
             assert false
             res.add(borrow)
-    var i = len(res) - 1
     #Remove trailing zeroes
     res.normalize()
     return res
@@ -147,7 +146,7 @@ func tobigint(s: string) : BigInt =
         for x in 1..digit:
             res = res + base
         #Compute base = 10*base without needing a multiplication method.
-        let double = base + base
+        let double = res + res
         let quad = double + double
         base = quad + quad + double
     return res
@@ -157,18 +156,19 @@ template Lo(n : uint64): uint64 =
 template Hi(n : uint64): uint64 =
     n shr 32
 
+# Multiplies two 64 bit ints together to produce a 128 bit int
 func mult128(a : uint64, b : uint64) : BigInt =
+    # Split a and b into High and Low 32 bit parts
     let
         aLo = a.Lo
         bLo = b.Lo
         aHi = a.Hi
         bHi = b.Hi
-    let carry = aLo*bHi+bLo*aHi < aLo*bHi
     var l = aLo * bLo + (Lo(aLo*bHi+bLo*aHi) shl 32)
     var h = aHi * bHi + (Hi(aLo*bHi+bLo*aHi))
-    if carry:
+    if aLo*bHi+bLo*aHi < aLo*bHi: 
         h += 1 shl 32
-    if l < aLo * bLo:
+    if l < aLo * bLo: #This occurs when there is a carry producing l
         h += 1
     if h == 0:
         return @[l]
@@ -227,23 +227,3 @@ func `*`(a : BigInt, x : uint64) : BigInt =
                 val.add(incr[1])
     val.normalize()
     return val
-
-proc `div`(a: BigInt, b : BigInt) : BigInt =
-    assert not(b == 0.tobigint)
-    if b > a:
-        return 0.tobigint
-    var num : BigInt
-    shallowCopy(num, a)
-    var res : BigInt = @[]
-    var d = b shl (len(a)-len(b))
-
-    if d[^1] > num[^1]:
-        discard
-    var q = num[^1] div d[^1]
-    if d * q < num:
-        res.add(q)
-    else:
-        res.add(q - 1'u64)
-
-
-echo 10.tobigint div 2.tobigint
