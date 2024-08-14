@@ -5,6 +5,9 @@ type BigInt = seq[uint64]
 template tobigint(a: int) : BigInt = @[uint64(a)]
 template tobigint(a: uint64) : BigInt = @[a]
 
+# Note that for this and other comparison operators to work,
+# Inputs must be normalised (i.e. have no trailing zeroes)
+
 func `==`(a : BigInt, b : BigInt) : bool =
     if len(a) == len(b):
         for i in 0..len(a)-1:
