@@ -91,9 +91,8 @@ func `+`(a : BigInt, b : BigInt) : BigInt =
                     carry = 1
                 else:
                     carry = 0
-    else:
-        if carry > 0:
-            res.add(carry)
+    if carry > 0:
+        res.add(carry)
     return res
 
 func `-`(a : BigInt, b : BigInt) : BigInt =
@@ -129,11 +128,7 @@ func `-`(a : BigInt, b : BigInt) : BigInt =
                     borrow = 1
                 else:
                     borrow = 0
-    else:
-        if borrow > 0:
-            #this is bad, since I'm assuming that we're dealing with positives here
-            assert false
-            res.add(borrow)
+    assert borrow == 0 #if this assert fails, then the result is a negative. Negatives are currently unimplemented.
     #Remove trailing zeroes
     res.normalize()
     return res
@@ -227,3 +222,5 @@ func `*`(a : BigInt, x : uint64) : BigInt =
                 val.add(incr[1])
     val.normalize()
     return val
+
+echo ((uint64(0) - uint64(1)).tobigint shl 1) + (uint64(0) - uint64(1)).tobigint + 1.tobigint
